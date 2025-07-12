@@ -1,4 +1,4 @@
-name: CI
+name: prod-check
 
 on:
   push:
@@ -9,7 +9,7 @@ on:
       - prod
 
 jobs:
-  build:
+  prod-build:
     runs-on: ubuntu-latest
 
     steps:
