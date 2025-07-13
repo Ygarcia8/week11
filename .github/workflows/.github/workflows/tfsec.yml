@@ -1,0 +1,32 @@
+name: tfsec
+
+on:
+  push:
+    branches: [ master, staging, prod ]
+  pull_request:
+    branches: [ prod ]
+  schedule:
+    - cron: '16 8 * * 3'
+
+jobs:
+  tfsec:
+    name: Run tfsec sarif report
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+
+    steps:
+      - name: Clone repo
+        uses: actions/checkout@v2
+
+      - name: Run tfsec
+        uses: tfsec/tfsec-sarif-action@0a9b3c5924f825c02be356338555741f002745f
+        with:
+          sarif_file: tfsec.sarif
+
+      - name: Upload SARIF file
+        uses: github/codeql-action/upload-sarif@v1
+        with:
+          sarif_file: tfsec.sarif
