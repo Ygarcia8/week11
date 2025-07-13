@@ -1,3 +1,8 @@
+# This workflow uses actions that are not certified by GitHub.
+# They are provided by a third-party and are governed by
+# separate terms of service, privacy policy, and support
+# documentation.
+
 name: tfsec
 
 on:
@@ -22,11 +27,12 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Run tfsec
-        uses: tfsec/tfsec-sarif-action@0a9b3c5924f825c02be356338555741f002745f
+        uses: tfsec/tfsec-sarif-action@a9b3bc5294f825c02be356338555741d02745f
         with:
           sarif_file: tfsec.sarif
 
       - name: Upload SARIF file
         uses: github/codeql-action/upload-sarif@v1
         with:
+          # Path to SARIF file relative to the root of the repository
           sarif_file: tfsec.sarif
