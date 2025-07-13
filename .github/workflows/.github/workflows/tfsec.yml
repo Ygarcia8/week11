@@ -18,29 +18,15 @@ jobs:
       security-events: write
       id-token: write
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Check for Terraform files
-        id: check_tf
-        run: |
-          count=$(find . -type f -name "*.tf" | wc -l)
-          echo "Found $count Terraform files"
-          if [ "$count" -gt 0 ]; then
-            echo "run_tfsec=true" >> $GITHUB_ENV
-          else
-            echo "No Terraform files found. Skipping tfsec."
-            echo "run_tfsec=false" >> $GITHUB_ENV
-          fi
+      - name: Checkout repo
+        uses: actions/checkout@v2
 
       - name: Run tfsec
-        if: env.run_tfsec == 'true'
         uses: aquasecurity/tfsec-sarif-action@v0.1.4
         with:
           sarif_file: tfsec.sarif
 
       - name: Upload SARIF file
-        if: env.run_tfsec == 'true'
         uses: github/codeql-action/upload-sarif@v1
         with:
           sarif_file: tfsec.sarif
