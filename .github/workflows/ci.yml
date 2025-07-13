@@ -16,8 +16,25 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Run a test command
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v2
+
+      - name: Install tfsec
         run: |
-          echo "Running test..."
-          sleep 2
-          echo "✅ Test passed!"
+          curl -s https://raw.githubusercontent.com/aquasecurity/tfsec/master/scripts/install_linux.sh | bash
+          tfsec --version
+
+      - name: Install tflint
+        run: |
+          curl -L https://github.com/terraform-linters/tflint/releases/latest/download/tflint_linux_amd64.zip -o tflint.zip
+          unzip tflint.zip -d /usr/local/bin
+          tflint --version
+
+      - name: Run tfsec (Static Security Analysis)
+        run: tfsec .
+
+      - name: Run tflint (Lint Terraform Code)
+        run: tflint .
+
+      - name: Final check
+        run: echo "✅ All security and linting checks passed!"
