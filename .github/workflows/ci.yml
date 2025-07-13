@@ -19,22 +19,38 @@ jobs:
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v2
 
+      - name: Check for Terraform files
+        id: check_tf
+        run: |
+          count=$(find . -type f -name "*.tf" | wc -l)
+          echo "Found $count Terraform files"
+          if [ "$count" -gt 0 ]; then
+            echo "run_build=true" >> $GITHUB_ENV
+          else
+            echo "No Terraform files found. Skipping build steps."
+            echo "run_build=false" >> $GITHUB_ENV
+          fi
+
       - name: Install tfsec
+        if: env.run_build == 'true'
         run: |
           curl -s https://raw.githubusercontent.com/aquasecurity/tfsec/master/scripts/install_linux.sh | bash
           tfsec --version
 
       - name: Install tflint
+        if: env.run_build == 'true'
         run: |
           curl -L https://github.com/terraform-linters/tflint/releases/latest/download/tflint_linux_amd64.zip -o tflint.zip
           unzip tflint.zip -d /usr/local/bin
           tflint --version
 
-      - name: Run tfsec (Static Security Analysis)
+      - name: Run tfsec
+        if: env.run_build == 'true'
         run: tfsec .
 
-      - name: Run tflint (Lint Terraform Code)
+      - name: Run tflint
+        if: env.run_build == 'true'
         run: tflint .
 
       - name: Final check
-        run: echo "✅ All security and linting checks passed!"
+        run: echo "✅ CI steps completed!"
