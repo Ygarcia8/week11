@@ -48,8 +48,8 @@ jobs:
         run: tfsec .
 
       - name: Run tflint
-        if: env.run_build == 'true'
-        run: tflint .
+        run: tflint --chdir .
+
 
       - name: Final check
         run: echo "✅ CI steps completed!"
