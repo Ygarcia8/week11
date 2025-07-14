@@ -69,7 +69,8 @@ resource "aws_instance" "web" {
 }
 
 resource "aws_security_group" "web-sg" {
-  name = "${random_pet.sg.id}-sg"
+  name        = "${random_pet.sg.id}-sg"
+  description = "Web server security group with restricted access"
 
   ingress {
     from_port   = 8080
@@ -83,7 +84,7 @@ resource "aws_security_group" "web-sg" {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
-    cidr_blocks = ["10.0.0.0/16"] # Limitar a red privada
+    cidr_blocks = ["10.0.0.0/16"]
     description = "Allow all traffic within internal network"
   }
 }
