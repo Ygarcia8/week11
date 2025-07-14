@@ -1,5 +1,4 @@
-name: github/workflows/ci.yml
-
+name: tfsec
 
 on:
   push:
@@ -12,7 +11,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -55,3 +53,4 @@ jobs:
 
       - name: Final check
         run: echo "✅ CI steps completed!"
+
