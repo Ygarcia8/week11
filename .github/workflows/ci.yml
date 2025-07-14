@@ -30,11 +30,14 @@ jobs:
             echo "run_build=false" >> $GITHUB_ENV
           fi
 
-      - name: Install tfsec
+      - name: Install tfsec (GitHub Release)
         if: env.run_build == 'true'
         run: |
-          curl -s https://raw.githubusercontent.com/aquasecurity/tfsec/master/scripts/install_linux.sh | bash
-          tfsec --version
+         curl -sLo tfsec.zip https://github.com/aquasecurity/tfsec/releases/latest/download/tfsec-linux-amd64.zip
+         unzip tfsec.zip
+         chmod +x tfsec
+         sudo mv tfsec /usr/local/bin/
+         tfsec --version
 
       - name: Install tflint
         if: env.run_build == 'true'
