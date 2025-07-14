@@ -33,7 +33,10 @@ jobs:
       - name: Install tfsec
         if: env.run_build == 'true'
         run: |
-          curl -s https://raw.githubusercontent.com/aquasecurity/tfsec/master/scripts/install_linux.sh | bash
+          curl -sLo tfsec.tar.gz https://github.com/aquasecurity/tfsec/releases/latest/download/tfsec-linux-amd64.tar.gz
+          tar -xzf tfsec.tar.gz
+          chmod +x tfsec
+          sudo mv tfsec /usr/local/bin/
           tfsec --version
 
       - name: Install tflint
