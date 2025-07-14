@@ -1,4 +1,4 @@
-name: CI / build (pull_request)
+name: tfsec
 
 on:
   push:
