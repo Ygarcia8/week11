@@ -1,22 +1,42 @@
-resource "aws_instance" "web" {
-  ami                    = data.aws_ami.ubuntu.id
-  instance_type          = "t2.micro"
-  vpc_security_group_ids = [aws_security_group.web-sg.id]
+name: tfsec
 
-  metadata_options {
-    http_tokens = "required"
-  }
+on:
+  pull_request:
+    branches:
+      - staging
 
-  root_block_device {
-    encrypted = true
-  }
+jobs:
+  build:
+    runs-on: ubuntu-latest
 
-  user_data = <<-EOF
-              #!/bin/bash
-              apt-get update
-              apt-get install -y apache2
-              sed -i -e 's/80/8080/' /etc/apache2/ports.conf
-              echo "Hello World" > /var/www/html/index.html
-              systemctl restart apache2
-              EOF
-}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.5.7
+
+      - name: Check for Terraform files
+        run: |
+          if ls *.tf 1> /dev/null 2>&1; then
+            echo "Terraform files found"
+          else
+            echo "No Terraform files found"
+            exit 1
+          fi
+
+      - name: Install tfsec
+        run: |
+          curl -s https://raw.githubusercontent.com/aquasecurity/tfsec/master/scripts/install_linux.sh | bash
+
+      - name: Run tfsec
+        run: tfsec --soft-fail .
+
+      - name: Install tflint
+        run: |
+          curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
+
+      - name: Run tflint
+        run: tflint --chdir .
