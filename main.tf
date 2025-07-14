@@ -1,21 +1,93 @@
-resource "aws_security_group" "web_sg" {
-  name        = "web-sg"
-  description = "Allow HTTP traffic only from internal network"
-  vpc_id      = "vpc-12345678"
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
+terraform {
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "4.52.0"
+    }
+    random = {
+      source  = "hashicorp/random"
+      version = "3.4.3"
+    }
+  }
+  required_version = ">= 1.1.0"
+
+  cloud {
+    organization = "REPLACE_ME"
+
+    workspaces {
+      name = "gh-actions-demo"
+    }
+  }
+}
+
+provider "aws" {
+  region = "us-west-2"
+}
+
+resource "random_pet" "sg" {}
+
+data "aws_ami" "ubuntu" {
+  most_recent = true
+
+  filter {
+    name   = "name"
+    values = ["ubuntu/images/hvm-ssd/ubuntu-focal-20.04-amd64-server-*"]
+  }
+
+  filter {
+    name   = "virtualization-type"
+    values = ["hvm"]
+  }
+
+  owners = ["099720109477"] # Canonical
+}
+
+resource "aws_instance" "web" {
+  ami                    = data.aws_ami.ubuntu.id
+  instance_type          = "t2.micro"
+  vpc_security_group_ids = [aws_security_group.web-sg.id]
+
+  metadata_options {
+    http_tokens = "required"
+  }
+
+  root_block_device {
+    encrypted = true
+  }
+
+  user_data = <<-EOF
+              #!/bin/bash
+              apt-get update
+              apt-get install -y apache2
+              sed -i -e 's/80/8080/' /etc/apache2/ports.conf
+              echo "Hello World" > /var/www/html/index.html
+              systemctl restart apache2
+              EOF
+}
+
+resource "aws_security_group" "web-sg" {
+  name = "${random_pet.sg.id}-sg"
 
   ingress {
-    from_port   = 80
-    to_port     = 80
+    from_port   = 8080
+    to_port     = 8080
     protocol    = "tcp"
-    cidr_blocks = ["10.0.0.0/16"] # Ejemplo de rango interno
-    description = "Allow HTTP from internal network"
+    cidr_blocks = ["10.0.0.0/16"] # Limitar a red privada
+    description = "Allow HTTP from internal network only"
   }
 
   egress {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
-    cidr_blocks = ["10.0.0.0/16"] # Limitar egress al mismo rango interno
+    cidr_blocks = ["10.0.0.0/16"] # Limitar a red privada
     description = "Allow all traffic within internal network"
   }
+}
+
+output "web-address" {
+  value = "${aws_instance.web.public_dns}:8080"
 }
