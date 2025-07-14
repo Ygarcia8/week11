@@ -43,14 +43,22 @@ jobs:
           unzip tflint.zip -d /usr/local/bin
           tflint --version
 
-      - name: Run tfsec
+      - name: Run tfsec with SARIF output
         if: env.run_build == 'true'
-        run: tfsec .
+        run: |
+          tfsec --format sarif --out results.sarif --soft-fail .
+
+      - name: Upload SARIF results
+        if: env.run_build == 'true'
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: results.sarif
 
       - name: Run tflint
+        if: env.run_build == 'true'
         run: tflint --chdir .
-
 
       - name: Final check
         run: echo "✅ CI steps completed!"
+
 
